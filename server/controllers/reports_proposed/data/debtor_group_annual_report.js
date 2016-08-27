@@ -12,6 +12,8 @@
 
 var db      = require('../../../lib/db');
 var numeral = require('numeral');
+var q       = require('q');
+var sanitize = require('../../../lib/sanitize');
 
 // takes in a date object, spits out
 // dd-MM-yyyy format
@@ -37,7 +39,6 @@ exports.compile = function (options) {
   'use strict';
 
   var sql,
-      params = {},
       context = {},
       fiscalYearId = options.fy;
 
@@ -46,6 +47,11 @@ exports.compile = function (options) {
       require('../lang/en.json').DEBTOR_GROUP_ANNUAL_REPORT;
 
   context.timestamp = dateFmt(new Date());
+
+  context.ignoredAccounts = (options.ignoredAccounts) ?
+  'AND account.account_number NOT IN (' + 
+    options.ignoredAccounts.split(';')
+    .map(function (item){ return sanitize.escape(item);}).join(',') + ')' : '';
 
   // get some metadata about the fiscal year
   sql =
@@ -56,6 +62,8 @@ exports.compile = function (options) {
   return db.exec(sql, [fiscalYearId])
   .then(function (rows) {
     var year = rows[0];
+
+    context.year = year;
 
     context.meta = {
       label : year.label,
@@ -74,7 +82,7 @@ exports.compile = function (options) {
   })
   .then(function (rows) {
 
-    // this will not be null, since it is a join.
+    // this will not be null, since it is a join. (realy ???)
     var year = rows[0];
 
     if (year.stop === null) {
@@ -91,10 +99,10 @@ exports.compile = function (options) {
       'FROM debitor_group AS dg LEFT JOIN period_total AS pt ON dg.account_id = pt.account_id ' +
       'JOIN account ON account.id = dg.account_id ' +
       'JOIN period AS p ON pt.period_id = p.id ' +
-      'WHERE p.period_stop <= DATE(?) ' +
+      'WHERE p.fiscal_year_id = ? ' + context.ignoredAccounts + 
       'GROUP BY account.id;';
 
-    return db.exec(sql, [context.meta.startDate]);
+    return db.exec(sql, [context.year.previous_fiscal_year]);
   })
   .then(function (accounts) {
 
@@ -102,11 +110,12 @@ exports.compile = function (options) {
     // reduce the accounts into a single account object with properties for beginning balance,
     // credits, debits, and closing balance
     context.accounts = accounts.reduce(function (object, account) {
-      var id = account.number;
+      var id = account.account_number;
 
       object[id] = {};
       object[id].openingCredits = account.credit;
       object[id].openingDebits = account.debit;
+      object[id].balance = (account.debit - account.credit);
       object[id].name = account.name;
       object[id].account_number = account.account_number;
 
@@ -120,10 +129,10 @@ exports.compile = function (options) {
       'FROM debitor_group AS dg LEFT JOIN period_total AS pt ON dg.account_id = pt.account_id ' +
       'JOIN account ON account.id = dg.account_id ' +
       'JOIN period AS p ON pt.period_id = p.id ' +
-      'WHERE p.fiscal_year_id = ? ' +
+      'WHERE p.fiscal_year_id = ? ' + context.ignoredAccounts +
       'GROUP BY account.id;';
 
-    return db.exec(sql, [fiscalYearId]);
+    return db.exec(sql, [options.fy]);
   })
   .then(function (accounts) {
 
@@ -135,34 +144,32 @@ exports.compile = function (options) {
         var o = context.accounts[a.account_number] = {};
         o.openingCredits = 0;
         o.openingDebits = 0;
+        o.balance = 0;
         o.name = a.name;
         o.account_number = a.account_number;
       }
 
       var ref = context.accounts[a.account_number];
+
       ref.debits = a.debit;
       ref.credits = a.credit;
+      ref.simpleDebits = a.debit;
+      ref.simpleCredits = a.credit;
+
+      // remove previous debt in current value
+      if(ref.balance >= 0) {
+        ref.simpleDebits = ref.simpleDebits - ref.balance;
+      }else{
+        ref.simpleCredits = ref.simpleCredits - (ref.balance * -1);
+      }
+
+      ref.closingBalance = ref.debits - ref.credits;
+      ref.simpleClosingBalance = (ref.balance + ref.simpleDebits) - ref.simpleCredits;
     });
 
-    // get the ending balance (movements + beginning balances)
-    sql =
-      'SELECT account.id, account.account_number, dg.name, ' +
-        'SUM(IFNULL(pt.debit, 0) - IFNULL(pt.credit, 0)) AS balance ' +
-      'FROM debitor_group AS dg JOIN account ON account.id = dg.account_id ' +
-      'LEFT JOIN period_total AS pt ON dg.account_id = pt.account_id ' +
-      'JOIN period AS p ON pt.period_id = p.id ' +
-      'WHERE p.period_stop <= DATE(?) ' +
-      'GROUP BY account.id;';
-
-    return db.exec(sql, [context.meta.stopDate]);
+    return q.when(accounts);
   })
   .then(function (accounts) {
-
-    // put in the closing balances
-    accounts.forEach(function (account) {
-      var ref = context.accounts[account.account_number];
-      ref.closingBalance = account.balance;
-    });
 
     // record the size of the accounts object (number of accounts)
     context.meta.size = Object.keys(context.accounts).length;
@@ -171,15 +178,23 @@ exports.compile = function (options) {
     var aggregates = {
       openingDebits:  0,
       openingCredits: 0,
+      balance :       0,
       debits:         0,
       credits:        0,
-      closingBalance: 0
+      simpleDebits :  0,
+      simpleCredits : 0,
+      closingBalance: 0,
+      simpleClosingBalance : 0
     };
 
     // loop through accounts and sum up all the balances
     context.totals = Object.keys(context.accounts).reduce(function (totals, account) {
       // pull in the account information
-      var a = context.accounts[account];
+      var a = context.accounts[account];   
+
+      if(!a.debits) { a.debits = 0; a.simpleDebits = 0; };
+      if(!a.credits) { a.credits = 0; a.simpleCredits = 0; }; 
+      if(!a.closingBalance) { a.closingBalance = a.debits - a.credits; a.simpleClosingBalance = (a.simpleDebits - a.simpleCredits) + a.balance; }
 
       // loop through the account's properties, adding up each to the aggregate
       Object.keys(totals).forEach(function (k) {

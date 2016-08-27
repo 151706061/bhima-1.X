@@ -12,7 +12,6 @@ angular.module('bhima.controllers')
     var session = $scope.session = {},
         dependencies = {},
         generatedDocumentPath = null,
-        serverUtilityPath = '/report/build/bilan',
         configuration = reportConfigService.configuration,
         parents = [], i = 0;
 
@@ -47,6 +46,8 @@ angular.module('bhima.controllers')
       selectConfiguration('language', configuration.language.options[1]);
       $scope.session.fiscal_year_id = $scope.fiscalYears.data[$scope.fiscalYears.data.length-1].id;
       $scope.session.parents = getParents($scope.session.fiscal_year_id);
+      $scope.session.ohada_structure = 1; //ohada structure checked
+      $scope.session.net_only = 0;
     }
 
     function getParents (fid){
@@ -84,7 +85,9 @@ angular.module('bhima.controllers')
 
     // POST configuration object to /report/build/:target
     function generateDocument() {
-      var path = serverUtilityPath;
+
+      var path = $scope.session.ohada_structure === 1 ? '/report/build/bilan' : '/report/build/bilan_inline';
+
       var configurationObject = {};
 
       // Temporarily set configuration options - This shouldn't be manually compiled
@@ -93,9 +96,15 @@ angular.module('bhima.controllers')
       configurationObject.fy_txt = $scope.fiscalYears.get(configurationObject.fy).fiscal_year_txt;
       configurationObject.enterprise = configuration.enterprise;
       configurationObject.project = configuration.project;
+      configurationObject.net_only = $scope.session.net_only;
       configurationObject.parentIds = $scope.session.parents.map(function (item){
         return item.id;
       });
+
+      if($scope.session.ohada_structure === 0) {
+
+        configurationObject.parentIds.sort(function (a, b){ return a-b;});
+      }
 
       // Update state
       session.building = true;

@@ -19,6 +19,7 @@ var accountResultContext               = require('./data/account_result');
 var debitorGroupReportContext          = require('./data/debitor_group_report');
 var debtorGroupAnnualReportContext     = require('./data/debtor_group_annual_report');
 var variationExploitationContext       = require('./data/variation_exploitation');
+var stockFileContext                   = require('./data/stock_file');
 
 // Module configuration
 var writePath = path.join(__dirname, 'out/');
@@ -36,6 +37,10 @@ var documentHandler = {
   bilan : {
     template : dots.bilan,
     context : bilanContext
+  },  
+  bilan_inline : {
+    template : dots.bilan_inline,
+    context  : bilanContext
   },
   grand_livre : {
     template : dots.grand_livre,
@@ -57,9 +62,17 @@ var documentHandler = {
     template : dots.debtor_group_annual_report,
     context :  debtorGroupAnnualReportContext
   },
+  debtor_group_annual_report_simple : {
+    template : dots.debtor_group_annual_report_simple,
+    context  : debtorGroupAnnualReportContext
+  },
   variation_exploitation : {
     template : dots.variation_exploitation,
     context : variationExploitationContext
+  },
+  stock_file : {
+    template : dots.stock_file,
+    context : stockFileContext
   }
 };
 

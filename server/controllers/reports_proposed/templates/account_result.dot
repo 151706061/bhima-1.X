@@ -22,38 +22,35 @@
           <tr>
             <th>{{=it.i18nAccountResult.REFERENCE}}</th>
             <th>{{=it.i18nAccountResult.CHARGE}}</th>
-            <th>Exercice N</th>
-            <th>Ex. N-1</th>
+            <th>Exercice {{=it.options.fy_txt}}</th>
+            {{~it.previous : data : i}} <th>Exercice {{=data.charges[0].fiscal}}</th> {{~}}            
           </tr>
         </thead>
         <tbody>
           {{~it.chargeSide : section : ind1}}
             <tr>
               <th></th>
-              <th>{{=section.sectionResultLabel}}({{=section.sectionResultPosition}})</th>
-              <th colspan="3"></th>
+              <th>{{=section.sectionResultLabel}}</th>
+              <th colspan="{{=2+it.previous.length}}"></th>
             </tr>
               {{~section.refs : ref : ind2}}
-                <tr>
-                  <td class="text-center">{{=ref.referenceAbbr}}</td>
-                  <td>{{=ref.referenceLabel}}</td>
-                  <td class="text-center">{{=ref.net_view}}</td>
-                  <td class="text-center">{{=ref.previous_view}}</td>
-                </tr>
-              {{~}}
-            <tr>
-              <th></th>
-              <th>{{=it.i18nAccountResult.TOTAL}} {{=section.sectionResultLabel}} ({{=section.sectionResultPosition}})</th>
-              <th>{{=section.total_view}}</th>
-              <th>{{=section.totalPrevious_view}}</th>
-            </tr>
-          {{~}}
-          <tr>
-            <th></th>
-            <th>{{=it.i18nAccountResult.TOTAL_GENERAL}}</th>
-            <th>{{=it.chargeGeneral}}</th>
-            <th>{{=it.chargeGeneralPrevious}}</th>
-          </tr>
+                {{? ref.type == 'TOT'}}
+                  <tr class="gray-line">
+                    <td class="text-center"><b>{{=ref.referenceAbbr}}</b></td>
+                    <td><b>{{=ref.referenceLabel}}</b></td>
+                    <td class="text-center"><b>{{=ref.net_view}}</b></td>
+                    {{~it.previous : data : i}} <td class="text-center"><b>{{=ref['previous_view' + i]}}</b></td> {{~}}                       
+                  </tr>
+                  {{??}}
+                    <tr>
+                      <td class="text-center">{{=ref.referenceAbbr}}</td>
+                      <td>{{=ref.referenceLabel}}</td>
+                      <td class="text-center">{{=ref.net_view}}</td>
+                      {{~it.previous : data : i}} <td class="text-center">{{=ref['previous_view' + i]}}</td> {{~}}                       
+                    </tr> 
+                {{?}}               
+              {{~}}            
+          {{~}}          
         </tbody>
       </table>
 
@@ -63,38 +60,75 @@
           <tr>
             <th>{{=it.i18nAccountResult.REFERENCE}}</th>
             <th>{{=it.i18nAccountResult.PROFIT}}</th>
-            <th>Exercice N</th>
-            <th>Ex. N-1</th>
+            <th>Exercice {{=it.options.fy_txt}}</th>
+            {{~it.previous : data : i}} <th>Exercice {{=data.produits[0].fiscal}}</th> {{~}}            
           </tr>
         </thead>
         <tbody>
           {{~it.profitSide : section : ind1}}
             <tr>
               <th></th>
-              <th>{{=section.sectionResultLabel}}({{=section.sectionResultPosition}})</th>
-              <th colspan="3"></th>
+              <th>{{=section.sectionResultLabel}}</th>
+              <th colspan="{{=2+it.previous.length}}"></th>
             </tr>
               {{~section.refs : ref : ind2}}
-                <tr>
-                  <td class="text-center">{{=ref.referenceAbbr}}</td>
-                  <td>{{=ref.referenceLabel}}</td>
-                  <td class="text-center">{{=ref.net_view}}</td>
-                  <td class="text-center">{{=ref.previous_view}}</td>
-                </tr>
-              {{~}}
-            <tr>
-              <th></th>
-              <th>{{=it.i18nAccountResult.TOTAL}} {{=section.sectionResultLabel}} ({{=section.sectionResultPosition}})</th>
-              <th>{{=section.total_view}}</th>
-              <th>{{=section.totalPrevious_view}}</th>
-            </tr>
-          {{~}}
+                {{? ref.type == 'MAR' || ref.type == 'RES' || ref.type == 'EXC' || ref.type == 'VAL' || ref.type == 'CHI'}}
+                  <tr class="gray-line">
+                    <td class="text-center"><b><i>{{=ref.referenceAbbr}}</i></b></td>
+                    <td><b><i>{{=ref.referenceLabel}}</i></b></td>
+                    <td class="text-center"><b><i>{{=ref.net_view}}</i></b></td>
+                    {{~it.previous : data : i}} <td class="text-center"><b><i>{{=ref['previous_view' + i]}}</i></b></td> {{~}}                       
+                  </tr>
+
+                  {{?? ref.type == 'TOT'}}
+                    <tr class="gray-line">
+                      <td class="text-center"><b>{{=ref.referenceAbbr}}</b></td>
+                      <td><b>{{=ref.referenceLabel}}</b></td>
+                      <td class="text-center"><b>{{=ref.net_view}}</b></td>
+                      {{~it.previous : data : i}} <td class="text-center"><b>{{=ref['previous_view' + i]}}</b></td> {{~}}                       
+                    </tr>                  
+                  {{??}}
+
+                  <tr>
+                    <td class="text-center">{{=ref.referenceAbbr}}</td>
+                    <td>{{=ref.referenceLabel}}</td>
+                    <td class="text-center">{{=ref.net_view}}</td>
+                    {{~it.previous : data : i}} <td class="text-center">{{=ref['previous_view' + i]}}</td> {{~}}                       
+                  </tr>                 
+                {{?}}                
+              {{~}}            
+          {{~}}          
+        </tbody>
+      </table>
+
+    <!-- description -->
+      <table class="clean-table" border="1">
+        <thead>
           <tr>
-            <th></th>
-            <th>{{=it.i18nAccountResult.TOTAL_GENERAL}}</th>
-            <th>{{=it.profitGeneral}}</th>
-            <th>{{=it.profitGeneralPrevious}}</th>
+            <th width="35%">{{=it.i18nAccountResult.RUBRICS}}</th>
+            <th>{{=it.i18nAccountResult.DESCRIPTION}}</th>
           </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>{{=it.i18nAccountResult.MARGE_MARCHANDISE}}</th>
+            <td>{{=it.i18nAccountResult.MARGE_MARCHANDISE_DESC}}</td>
+          </tr> 
+
+          <tr>
+            <th>{{=it.i18nAccountResult.MARGE_MATIERE}}</th>
+            <td>{{=it.i18nAccountResult.MARGE_MATIERE_DESC}}</td>
+          </tr>
+
+           <tr>
+            <th>{{=it.i18nAccountResult.VALEUR_AJOUTEE}}</th>
+            <td>{{=it.i18nAccountResult.VALEUR_AJOUTEE_DESC}}</td>
+          </tr> 
+
+          <tr>
+            <th>{{=it.i18nAccountResult.EXCEDENT_BRUT}}</th>
+            <td>{{=it.i18nAccountResult.EXCEDENT_BRUT_DESC}}</td>
+          </tr>          
         </tbody>
       </table>
   </section>

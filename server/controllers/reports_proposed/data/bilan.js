@@ -4,7 +4,6 @@
 var q       = require('q');
 var db      = require('../../../lib/db');
 var numeral = require('numeral');
-
 var formatDollar = '$0,0.00';
 
 // expose the http route
@@ -19,10 +18,10 @@ exports.compile = function (options) {
     '`ref`.`position` AS `referencePosition`, `gref`.`id` AS `greferenceId`, `ref`.`is_report` AS `referenceIsReport`, ' +
     '`gref`.`reference_group` AS `greferenceAbbr`, `gref`.`text` AS `greferenceLabel`, `gref`.`position` AS `greferencePosition`, ' +
     '`sbl`.`id` AS `sectionBilanId`, `sbl`.`text` AS `sectionBilanLabel`, `sbl`.`is_actif` AS `sectionBilanIsActif`, ' +
-    '`sbl`.`position` AS `sectionBilanPosition`, SUM(`gld`.`debit_equiv`) AS `generalLegderDebit`, SUM(`gld`.`credit_equiv`) AS `generalLegderCredit`, ' +
-    '`gld`.`fiscal_year_id` AS fid FROM `section_bilan` `sbl` JOIN `reference_group` `gref` ON `sbl`.`id` = `gref`.`section_bilan_id` JOIN `reference` `ref` ON `gref`.`id` = `ref`.`reference_group_id` ' +
-    'JOIN `account` `acc` ON `acc`.`reference_id` = `ref`.`id` JOIN `general_ledger` `gld` ON `gld`.`account_id` = `acc`.`id` WHERE `gld`.`period_id` IN (SELECT `id` ' +
-    'FROM `period` WHERE `period`.`fiscal_year_id`=?) AND `acc`.`is_ohada`=? GROUP BY `gld`.`account_id` ORDER BY `sbl`.`position`, `gref`.`position`, `ref`.`position` DESC;';
+    '`sbl`.`position` AS `sectionBilanPosition`, SUM(`gld`.`debit_equiv`) AS `generalLegderDebit`, SUM(`gld`.`credit_equiv`) AS `generalLegderCredit`, `fy`.`fiscal_year_txt` AS fiscal ' +
+    'FROM `section_bilan` `sbl` JOIN `reference_group` `gref` ON `sbl`.`id` = `gref`.`section_bilan_id` JOIN `reference` `ref` ON `gref`.`id` = `ref`.`reference_group_id` ' +
+    'JOIN `account` `acc` ON `acc`.`reference_id` = `ref`.`id` JOIN `general_ledger` `gld` ON `gld`.`account_id` = `acc`.`id` JOIN `fiscal_year` `fy` ON `gld`.`fiscal_year_id` = `fy`.`id` WHERE `gld`.`period_id` IN (SELECT `id` ' +
+    'FROM `period` WHERE `period`.`fiscal_year_id`=?) AND `acc`.`is_ohada`=? GROUP BY `gld`.`account_id` ORDER BY `sbl`.`position`, `gref`.`position`, `ref`.`position` ASC;';
 
   //populating context object
   context.reportDate = bilanDate.toDateString();
@@ -47,7 +46,7 @@ exports.compile = function (options) {
         return item.sectionBilanIsActif === 0;
       });
 
-      /** transform our array of array to an object which contains to array asset and passif**/
+      /** transform our array of array to an object which contains to array assets and passifs**/
       return {assets : assets, passifs : passifs};
     });
 
@@ -113,13 +112,25 @@ exports.compile = function (options) {
 
             //previous net processing
             infos.previous.forEach(function (previousYearData, index){
+              //processing brut for previous year
+              item['brut' + index] = getBrut(item, previousYearData.assets, section.sectionBilanIsActif);
+              item['brut_view' + index] = numeral(item['brut' + index]).format(formatDollar);
+
+              //processing depreciation or provision for previous year
+              var provAmor = getAmortProv(item, previousYearData.assets, section.sectionBilanIsActif);
+              item['amort_prov' + index] = provAmor < 0 ? provAmor * -1 : provAmor;
+              item['amort_prov_view' + index] = numeral(item['amort_prov' + index]).format(formatDollar);
+
+              //processing previous net for previous year
               item['previousNet' + index] = getPreviousNet(item, previousYearData.assets, section.sectionBilanIsActif);
               item['previousNet_view' + index] = numeral(item['previousNet' + index]).format(formatDollar);
+
+              //processing total previous net
               gref['totalPreviousNet' + index] += item['previousNet' + index];
             });            
           });
 
-          /** calculate total for section**/
+          /** calculate total for section **/
           section.totalBrut += gref.totalBrut;
           section.totalAmortProv += gref.totalAmortProv;
           section.totalNet += gref.totalNet;
@@ -192,15 +203,14 @@ exports.compile = function (options) {
 
           gref.refs = getReferences(gref, currents);
           gref.refs.forEach(function (item){
-            var br = getBrut(item, currents, section.sectionBilanIsActif); //tapon pour stocker le brute
-            item.net = br < 0 ? br * -1 : br;
+            item.net = getBrut(item, currents, section.sectionBilanIsActif); // brut is the net
             item.net_view = numeral(item.net).format(formatDollar);
             gref.totalNet += item.net;
 
             //previous net processing
             infos.previous.forEach(function (previousYearData, index){
               item['previousNet' + index] = getPreviousNet(item, previousYearData.passifs, section.sectionBilanIsActif);
-              item['previousNet' + index] = item['previousNet' + index] < 0 ? item['previousNet' + index] * -1 : item['previousNet' + index];
+              // item['previousNet' + index] = item['previousNet' + index] < 0 ? item['previousNet' + index] * -1 : item['previousNet' + index];
 
               item['previousNet_view' + index] = numeral(item['previousNet' + index]).format(formatDollar);
               gref['totalPreviousNet' + index] += item['previousNet' + index];
@@ -350,7 +360,7 @@ exports.compile = function (options) {
         }
       });
 
-      /** getting group reference form previous**/
+      /** getting reference form previous**/
       infos.previous.forEach(function (items){
         var previous = [];
         previous = previous.concat(items.assets);
@@ -390,10 +400,10 @@ exports.compile = function (options) {
       return (isActif === 1)? somDebit - somCredit : somCredit - somDebit;
     }
 
-    function getAmortProv (reference, currents, isActif){
+    function getAmortProv (reference, list, isActif){
       var somDebit = 0, somCredit = 0;
 
-      currents.forEach(function (item){
+      list.forEach(function (item){
         if(item.referenceId === reference.referenceId && item.accountIsBrutLink === 0){
           somDebit+=(item.generalLegderDebit);
           somCredit+=(item.generalLegderCredit);
@@ -403,18 +413,18 @@ exports.compile = function (options) {
     }
 
     function getPreviousNet (reference, previous, isActif){
-      var somDebit = 0, somCredit = 0;
+      var somDebitBrut = 0, somCreditBrut = 0, somDebitAmorProv = 0, somCreditAmorProv = 0;
 
       previous.forEach(function (item, index){
         if(item.referenceId == reference.referenceId && item.accountIsBrutLink == 0){
-          somDebit+=(item.generalLegderDebit) * -1;
-          somCredit+=(item.generalLegderCredit) * -1;
+          somDebitAmorProv += (item.generalLegderDebit) * -1;
+          somCreditAmorProv += (item.generalLegderCredit) * -1;
         }else if(item.referenceId == reference.referenceId && item.accountIsBrutLink == 1){
-          somDebit+=item.generalLegderDebit;
-          somCredit+=item.generalLegderCredit;
+          somDebitBrut += item.generalLegderDebit;
+          somCreditBrut += item.generalLegderCredit;
         }
       });
-      return isActif == 1 ? somDebit - somCredit : somCredit - somDebit;
+      return isActif == 1 ? (somDebitBrut - somCreditBrut) - (somDebitAmorProv - somCreditAmorProv) : (somCreditBrut - somDebitBrut) - (somCreditAmorProv - somDebitAmorProv);
     }
 
     deferred.resolve(context);

@@ -10,6 +10,10 @@ table {
  * Invoice table style
  */
 
+ #motiv-column {
+  vertical-align: top;
+ }
+
 
  #bilan-reference {
   text-align:  left;
@@ -32,6 +36,11 @@ table {
   padding: 1px;
 }
 
+.header-text {
+  text-transform: uppercase;
+  font-size: 0.75em;
+}
+
 /*
  * Balance sheet style
  */
@@ -42,16 +51,31 @@ table {
 
 .variation thead > tr > th {
   border-bottom : 1px solid #9f9f9f;
-  text-align    : center;
 }
 
 .variation tbody > tr > td {
   border-bottom : 1px solid #9f9f9f;
-  text-align    : center;
 }
 
 .parent-backgroud {
   background-color: #F3F3F3;  
+}
+
+.designation {
+  white-space : nowrap;
+  text-overflow : ellipsis;
+  padding-left: 10px;
+  padding-right: 10px;
+  max-width : 500px;
+  overflow : hidden;
+}
+
+.number{
+  white-space : nowrap;
+  overflow: hidden;
+  max-width: 200px;
+  padding-left: 10px;
+  text-align: right;
 }
 
 .parent-content{
@@ -213,4 +237,16 @@ table.clean-table tfoot tr:first-child {
 .indicator-error {
   border-color: #E05252;
   background: #FBE9E9;
+}
+
+.gray-line {
+  background-color: #DDD;
+}
+
+.page-break {
+    page-break-after: always;
+}
+
+.repeat-motif {
+  display: table-header-group;
 }

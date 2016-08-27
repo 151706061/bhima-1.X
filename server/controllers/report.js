@@ -637,33 +637,58 @@ function incomeReport (params) {
   params = JSON.parse(params);
   var defer = q.defer(),
     requette =
-      'SELECT `t`.`uuid`, `t`.`trans_id`, `t`.`trans_date`, `t`.`account_number`, `t`.`debit_equiv`,  ' +
-      '`t`.`credit_equiv`, SUM(`t`.`debit`) AS `debit`, SUM(`t`.`credit`) AS `credit`, `t`.`currency_id`, `t`.`description`, `t`.`comment`, `t`.`primary_cash_uuid`, `t`.`service_txt`, `t`.`first`, `t`.`last` ' +
+      'SELECT `t`.`uuid`, `t`.`trans_id`, `t`.`trans_date`, `a`.`account_number`, `t`.`debit_equiv`,  ' +
+      '`t`.`credit_equiv`, SUM(`t`.`debit`) AS `debit`, SUM(`t`.`credit`) AS `credit`, `t`.`currency_id`, `t`.`description`, `t`.`comment`, `o`.`service_txt`, `u`.`first`, `u`.`last` ' +
+      'FROM (' +
+        '(' +
+          'SELECT `posting_journal`.`project_id`, `posting_journal`.`uuid`, `posting_journal`.`inv_po_id`, `posting_journal`.`trans_date`, `posting_journal`.`debit_equiv`, ' +
+            '`posting_journal`.`credit_equiv`, `posting_journal`.`debit`, `posting_journal`.`credit`, `posting_journal`.`account_id`, `posting_journal`.`deb_cred_uuid`, '+
+            '`posting_journal`.`currency_id`, `posting_journal`.`doc_num`, posting_journal.trans_id, `posting_journal`.`description`, `posting_journal`.`comment`, `posting_journal`.`origin_id`, `posting_journal`.`user_id` ' +
+          'FROM `posting_journal` ' +
+          'WHERE `posting_journal`.`account_id`= ? AND (`posting_journal`.`trans_date` >=? AND `posting_journal`.`trans_date` <=?) ' +
+      ') UNION (' +
+          'SELECT `general_ledger`.`project_id`, `general_ledger`.`uuid`, `general_ledger`.`inv_po_id`, `general_ledger`.`trans_date`, `general_ledger`.`debit_equiv`, ' +
+            '`general_ledger`.`credit_equiv`, `general_ledger`.`debit`, `general_ledger`.`credit`, `general_ledger`.`account_id`, `general_ledger`.`deb_cred_uuid`, `general_ledger`.`currency_id`, ' +
+            '`general_ledger`.`doc_num`, general_ledger.trans_id, `general_ledger`.`description`, `general_ledger`.`comment`, `general_ledger`.`origin_id`, `general_ledger`.`user_id` ' +
+          'FROM `general_ledger` ' +
+          'WHERE `general_ledger`.`account_id`= ? AND (`general_ledger`.`trans_date` >=? AND `general_ledger`.`trans_date` <=?) ' +
+        ')' +
+      ') AS `t` ' +
+      'JOIN `account` a ON `t`.`account_id` = `a`.`id` ' +
+      'JOIN `transaction_type` o ON `t`.`origin_id` = `o`.`id` ' + 
+      'JOIN `user` u ON `t`.`user_id` = `u`.`id` ' +
+      'WHERE `t`.`debit` > 0 GROUP BY `t`.`trans_id`;';
+
+  return db.exec(requette, [params.account_id, params.dateFrom, params.dateTo, params.account_id, params.dateFrom, params.dateTo]);
+}
+
+function incomePrimaryReport (params) {
+  params = JSON.parse(params);
+  var defer = q.defer(),
+    requette =
+      'SELECT `t`.`uuid`, `t`.`trans_id`, `t`.`trans_date`, `a`.`account_number`, `t`.`debit_equiv`,  ' +
+      '`t`.`credit_equiv`, SUM(`t`.`debit`) AS `debit`, SUM(`t`.`credit`) AS `credit`, `t`.`currency_id`, `t`.`description`, `t`.`comment`, `t`.`primary_cash_uuid`, `o`.`service_txt`, `u`.`first`, `u`.`last` ' +
       'FROM (' +
         '(' +
           'SELECT `posting_journal`.`project_id`, `posting_journal`.`uuid`,`primary_cash_item`.`primary_cash_uuid`, `primary_cash_item`.`document_uuid`, `posting_journal`.`inv_po_id`, `posting_journal`.`trans_date`, `posting_journal`.`debit_equiv`, ' +
             '`posting_journal`.`credit_equiv`, `posting_journal`.`debit`, `posting_journal`.`credit`, `posting_journal`.`account_id`, `posting_journal`.`deb_cred_uuid`, '+
-            '`posting_journal`.`currency_id`, `posting_journal`.`doc_num`, posting_journal.trans_id, `posting_journal`.`description`, `posting_journal`.`comment`, `posting_journal`.`origin_id`, `posting_journal`.`user_id`, ' +
-            '`a`.`account_number`, `o`.`service_txt`, `u`.`first`, `u`.`last` ' +
+            '`posting_journal`.`currency_id`, `posting_journal`.`doc_num`, posting_journal.trans_id, `posting_journal`.`description`, `posting_journal`.`comment`, `posting_journal`.`origin_id`, `posting_journal`.`user_id` ' +
           'FROM `posting_journal` ' +
           'JOIN `primary_cash_item` ON `primary_cash_item`.`document_uuid` = `posting_journal`.`inv_po_id` ' +
-          'JOIN `account` a ON `posting_journal`.`account_id` = `a`.`id` ' +
-          'JOIN `transaction_type` o ON `posting_journal`.`origin_id` = `o`.`id` ' + 
-          'JOIN `user` u ON `posting_journal`.`user_id` = `u`.`id` ' +
           'WHERE `posting_journal`.`account_id`= ? AND (`posting_journal`.`trans_date` >=? AND `posting_journal`.`trans_date` <=?) ' +
       ') UNION (' +
           'SELECT `general_ledger`.`project_id`, `general_ledger`.`uuid`,`primary_cash_item`.`primary_cash_uuid`,`primary_cash_item`.`document_uuid`, `general_ledger`.`inv_po_id`, `general_ledger`.`trans_date`, `general_ledger`.`debit_equiv`, ' +
             '`general_ledger`.`credit_equiv`, `general_ledger`.`debit`, `general_ledger`.`credit`, `general_ledger`.`account_id`, `general_ledger`.`deb_cred_uuid`, `general_ledger`.`currency_id`, ' +
-            '`general_ledger`.`doc_num`, general_ledger.trans_id, `general_ledger`.`description`, `general_ledger`.`comment`, `general_ledger`.`origin_id`, `general_ledger`.`user_id`, ' +
-            '`a`.`account_number`, `o`.`service_txt`, `u`.`first`, `u`.`last` ' +
+            '`general_ledger`.`doc_num`, general_ledger.trans_id, `general_ledger`.`description`, `general_ledger`.`comment`, `general_ledger`.`origin_id`, `general_ledger`.`user_id` ' +
           'FROM `general_ledger` ' +
           'JOIN `primary_cash_item` ON `primary_cash_item`.`document_uuid` = `general_ledger`.`inv_po_id`  ' +
-          'JOIN `account` a ON `general_ledger`.`account_id` = `a`.`id` ' +
-          'JOIN `transaction_type` o ON `general_ledger`.`origin_id` = `o`.`id` ' + 
-          'JOIN `user` u ON `general_ledger`.`user_id` = `u`.`id` ' +
           'WHERE `general_ledger`.`account_id`= ? AND (`general_ledger`.`trans_date` >=? AND `general_ledger`.`trans_date` <=?) ' +
         ')' +
-      ') AS `t` WHERE `t`.`debit` > 0 GROUP BY `t`.`trans_id`;';
+      ') AS `t` ' +
+      'JOIN `account` a ON `t`.`account_id` = `a`.`id` ' +
+      'JOIN `transaction_type` o ON `t`.`origin_id` = `o`.`id` ' + 
+      'JOIN `user` u ON `t`.`user_id` = `u`.`id` ' +
+      'WHERE `t`.`debit` > 0 GROUP BY `t`.`trans_id`;';
 
   return db.exec(requette, [params.account_id, params.dateFrom, params.dateTo, params.account_id, params.dateFrom, params.dateTo]);
 }
@@ -672,34 +697,29 @@ function expenseReport (params) {
   params = JSON.parse(params);
   var defer = q.defer(),
     requette =
-      'SELECT `t`.`uuid`, `t`.`trans_id`, `t`.`trans_date`, `t`.`account_number`, SUM(`t`.`debit_equiv`) AS `debit_equiv`, ' +
-      'SUM(`t`.`credit_equiv`) AS `credit_equiv`, SUM(`t`.`debit`) AS `debit`, SUM(`t`.`credit`) AS `credit`, `t`.`currency_id`, `t`.`description`, `t`.`comment`, `t`.`primary_cash_uuid`, `t`.`document_uuid`, `t`.`inv_po_id`, `t`.`service_txt`, `t`.`first`, `t`.`last` ' +
+      'SELECT `t`.`uuid`, `t`.`trans_id`, `t`.`trans_date`, `a`.`account_number`, SUM(`t`.`debit_equiv`) AS `debit_equiv`, ' +
+      'SUM(`t`.`credit_equiv`) AS `credit_equiv`, SUM(`t`.`debit`) AS `debit`, SUM(`t`.`credit`) AS `credit`, `t`.`currency_id`, `t`.`description`, `t`.`comment`, `t`.`primary_cash_uuid`, `t`.`document_uuid`, `t`.`inv_po_id`, `o`.`service_txt`, `u`.`first`, `u`.`last` ' +
       'FROM (' +
         '(' +
           'SELECT `posting_journal`.`project_id`, `posting_journal`.`uuid`, `primary_cash_item`.`primary_cash_uuid`, `primary_cash_item`.`document_uuid`, `posting_journal`.`inv_po_id`, `posting_journal`.`trans_date`, `posting_journal`.`debit_equiv`, ' +
             '`posting_journal`.`credit_equiv`, `posting_journal`.`debit`, `posting_journal`.`credit`, `posting_journal`.`account_id`, `posting_journal`.`deb_cred_uuid`, '+
-            '`posting_journal`.`currency_id`, `posting_journal`.`doc_num`, posting_journal.trans_id, `posting_journal`.`description`, `posting_journal`.`comment`, `posting_journal`.`origin_id`, `posting_journal`.`user_id`, ' +
-            '`a`.`account_number`, `o`.`service_txt`, `u`.`first`, `u`.`last` ' +
+            '`posting_journal`.`currency_id`, `posting_journal`.`doc_num`, posting_journal.trans_id, `posting_journal`.`description`, `posting_journal`.`comment`, `posting_journal`.`origin_id`, `posting_journal`.`user_id` ' +
           'FROM `posting_journal` ' +
           'LEFT JOIN `primary_cash_item` ON `primary_cash_item`.`document_uuid` = `posting_journal`.`inv_po_id` ' +
-          'JOIN `account` a ON `posting_journal`.`account_id` = `a`.`id` ' +
-          'JOIN `transaction_type` o ON `posting_journal`.`origin_id` = `o`.`id` ' + 
-          'JOIN `user` u ON `posting_journal`.`user_id` = `u`.`id` ' +
           'WHERE `posting_journal`.`account_id`= ? AND (`posting_journal`.`trans_date` >=? AND `posting_journal`.`trans_date` <=?) ' +
         ') UNION (' +
           'SELECT `general_ledger`.`project_id`, `general_ledger`.`uuid`, `primary_cash_item`.`primary_cash_uuid`, `primary_cash_item`.`document_uuid`, `general_ledger`.`inv_po_id`, `general_ledger`.`trans_date`, `general_ledger`.`debit_equiv`, ' +
             '`general_ledger`.`credit_equiv`, `general_ledger`.`debit`, `general_ledger`.`credit`, `general_ledger`.`account_id`, `general_ledger`.`deb_cred_uuid`, `general_ledger`.`currency_id`, ' +
-            '`general_ledger`.`doc_num`, general_ledger.trans_id, `general_ledger`.`description`, `general_ledger`.`comment`, `general_ledger`.`origin_id`, `general_ledger`.`user_id`, ' +
-            '`a`.`account_number`, `o`.`service_txt`, `u`.`first`, `u`.`last` ' +
+            '`general_ledger`.`doc_num`, general_ledger.trans_id, `general_ledger`.`description`, `general_ledger`.`comment`, `general_ledger`.`origin_id`, `general_ledger`.`user_id` ' +
           'FROM `general_ledger` ' +
           'LEFT JOIN `primary_cash_item` ON `primary_cash_item`.`document_uuid` = `general_ledger`.`inv_po_id`  ' +
-          'JOIN `account` a ON `general_ledger`.`account_id` = `a`.`id` ' +
-          'JOIN `transaction_type` o ON `general_ledger`.`origin_id` = `o`.`id` ' + 
-          'JOIN `user` u ON `general_ledger`.`user_id` = `u`.`id` ' +
           'WHERE `general_ledger`.`account_id`= ? AND (`general_ledger`.`trans_date` >=? AND `general_ledger`.`trans_date` <=?) ' +
         ')' +
-      ') AS `t` WHERE `t`.`credit` > 0 GROUP BY `t`.`trans_id`;';
-
+      ') AS `t` ' + 
+      'JOIN `account` a ON `t`.`account_id` = `a`.`id` ' +
+      'JOIN `transaction_type` o ON `t`.`origin_id` = `o`.`id` ' + 
+      'JOIN `user` u ON `t`.`user_id` = `u`.`id` ' +
+      'WHERE `t`.`credit` > 0 GROUP BY `t`.`trans_id`;';
 
   return db.exec(requette, [params.account_id, params.dateFrom, params.dateTo, params.account_id, params.dateFrom, params.dateTo]);
 }
@@ -790,11 +810,12 @@ function stock_movement (params){
 
 // Calculates the monthly balance based of period totals
 function balanceMensuelle(params) {
-  var sql, hasClasse,
+  var sql, hasClasse, periodPlage, queryParameters,
       query = querystring.parse(params),
       data = {};
 
   hasClasse = (query.classe !== '*');
+  periodPlage = (query.dateFrom && query.dateTo);
 
   // gets the amount up to the current period
   sql =
@@ -805,7 +826,19 @@ function balanceMensuelle(params) {
      (hasClasse ? 'AND a.classe = ? ' : '') +
     'GROUP BY a.id;';
 
-  return db.exec(sql, [query.date, query.enterpriseId, query.classe])
+  if (periodPlage) {
+    sql =
+    'SELECT a.account_number, a.id, a.account_txt, a.account_type_id, a.is_charge, a.is_asset, SUM(pt.credit) AS credit, SUM(pt.debit) AS debit ' +
+    'FROM period_total AS pt JOIN account AS a ON pt.account_id = a.id ' +
+    'JOIN period AS p ON pt.period_id = p.id ' +
+    'WHERE p.period_start >= DATE(?) AND period_start < DATE(?) AND pt.enterprise_id = ? ' +
+     (hasClasse ? 'AND a.classe = ? ' : '') +
+    'GROUP BY a.id;';
+  }
+
+  queryParameters = (periodPlage) ? [query.dateFrom, query.dateTo, query.enterpriseId, query.classe] : [query.date, query.enterpriseId, query.classe];
+
+  return db.exec(sql, queryParameters)
   .then(function (rows) {
     data.beginning = rows;
 
@@ -816,6 +849,8 @@ function balanceMensuelle(params) {
       'WHERE DATE(?) BETWEEN p.period_start AND p.period_stop AND pt.enterprise_id = ? ' +
        (hasClasse ? 'AND a.classe = ? ' : '') +
       'GROUP BY a.id;';
+
+    query.date = (periodPlage) ? query.dateTo : query.date;
 
     return db.exec(sql, [query.date, query.enterpriseId, query.classe]);
   })
@@ -935,8 +970,9 @@ function stock_store(params) {
   var requestSql =
     'SELECT stock.inventory_uuid, stock.tracking_number, ' +
     'stock.lot_number, stock.expiration_date, SUM(if (movement.depot_entry='+sanitize.escape(params.depotId)+
-    ', movement.quantity, (movement.quantity*-1))) as current, SUM(if (movement.depot_entry=' + sanitize.escape(params.depotId) +
-    ', movement.quantity, 0)) AS initial, inventory.text FROM stock JOIN inventory JOIN movement ON stock.inventory_uuid = inventory.uuid AND '+
+    ', movement.quantity, 0)) AS initial, (SUM(if (movement.depot_entry=' + sanitize.escape(params.depotId) +
+    ', movement.quantity, 0)) - SUM(if (movement.depot_exit=' + sanitize.escape(params.depotId) +
+    ', movement.quantity, 0))) AS current, inventory.text FROM stock JOIN inventory JOIN movement ON stock.inventory_uuid = inventory.uuid AND ' +
     'stock.tracking_number = movement.tracking_number WHERE (movement.depot_entry=' + sanitize.escape(params.depotId) +
     'OR movement.depot_exit=' + sanitize.escape(params.depotId) + ')  GROUP BY movement.tracking_number';
 
@@ -944,6 +980,7 @@ function stock_store(params) {
 }
 
 function stockComplete(params) {
+
   params = querystring.parse(params);
 
   var requestSql,
@@ -951,19 +988,11 @@ function stockComplete(params) {
     depot_uuid = sanitize.escape(params.depot_uuid);
 
   requestSql =
-    'SELECT SUM(cons.consumed ) AS consumed ' +
-    'FROM ( ' +
       'SELECT SUM(consumption.quantity) AS consumed ' +
       'FROM stock ' +
       'LEFT JOIN consumption ON stock.tracking_number = consumption.tracking_number ' +
       'WHERE stock.tracking_number = ' + tracking_number + ' AND consumption.canceled <> 1 '+
-      ' AND consumption.depot_uuid = ' + depot_uuid + ' '+
-    'UNION '+
-      'SELECT ((SUM(consumption.quantity)) * (-1)) AS consumed ' +
-      'FROM stock ' +
-      'LEFT JOIN consumption ON stock.tracking_number = consumption.tracking_number ' +
-      'WHERE stock.tracking_number = ' + tracking_number + ' AND consumption.canceled = 1 ' +
-      'AND consumption.depot_uuid = ' + depot_uuid + '  ) AS cons;';
+      ' AND consumption.depot_uuid = ' + depot_uuid + ';';
 
   return db.exec(requestSql);
 }
@@ -981,7 +1010,7 @@ function operatingAccount(params) {
     'JOIN account ON account.id = period_total.account_id ' +
     'JOIN account_type ON account_type.id = account.account_type_id ' +
     'WHERE period_total.period_id = ' + params.period_id + ' ' +
-    'AND account_type.type = \'income/expense\' ' +
+    'AND account_type.type = \'income/expense\' AND account.is_ohada = 1 ' +
     'ORDER BY account.account_number ASC';
 
   if (params.period_id === 'all') {
@@ -992,7 +1021,7 @@ function operatingAccount(params) {
       'JOIN account ON account.id = period_total.account_id ' +
       'JOIN account_type ON account_type.id = account.account_type_id ' +
       'WHERE period_total.fiscal_year_id = ' + fiscal_id + ' ' +
-      'AND account_type.type = \'income/expense\' ' +
+      'AND account_type.type = \'income/expense\' AND account.is_ohada = 1 ' +
       'GROUP BY account.account_number ' +
       'ORDER BY account.account_number ASC ';
   }
@@ -1028,6 +1057,7 @@ function generate(request, params, done) {
     'taxes_payment'         : taxes_payment,
     'transactions'          : transactionsByAccount,
     'income_report'         : incomeReport,
+    'income_primary_report' : incomePrimaryReport,
     'expense_report'        : expenseReport,
     'patient_group'         : require('./reports/patient_group')(db),
     'balance_mensuelle'     : balanceMensuelle,

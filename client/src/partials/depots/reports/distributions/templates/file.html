@@ -1,0 +1,43 @@
+<main>
+  <div class="panel panel-default">
+    <div class="panel-heading">{{'FILE.DOCUMENT_CONFIG' | translate}}</div>
+      <div class="panel-body">
+        <form name="configForm" novalidate>
+
+          <div class="form-group">            
+            <label class="control-label col-xs-4 required">
+              {{ "FILE.ARTICLES" | translate }}
+            </label>
+            <div>
+              <select class="form-bhima" ng-model="DistributionsCtrl.session.inventory" ng-options="fy as fy.code + ' -- ' + fy.text for fy in DistributionsCtrl.inventories.data" required>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="control-label col-xs-2 required">
+              {{ "FILE.DATE_FROM" | translate }}
+            </label>
+            <div class="col-xs-4">
+              <input class="form-bhima" type="date" ng-model="DistributionsCtrl.startDate" rows="20">
+            </div>
+            <label class="control-label col-xs-2 required">
+              {{ "FILE.DATE_TO" | translate }}
+            </label>
+            <div class="col-xs-4" style="padding-right: 0px;">
+              <input class="form-bhima" type="date" ng-model="DistributionsCtrl.endDate" rows="20">
+            </div>
+          </div> 
+
+          <button
+            type="button"
+            class="btn btn-default"
+            ng-disabled="DistributionsCtrl.building || configForm.$invalid"
+            ng-click="DistributionsCtrl.generateDocument()" ng-if="!DistributionsCtrl.generatedDocumentPath">{{DistributionsCtrl.building ? DistributionsCtrl.loading : DistributionsCtrl.generate_doc}}
+          </button>
+
+          <a class="btn btn-success" href="{{DistributionsCtrl.generatedDocumentPath}}" target="_blank" ng-if="DistributionsCtrl.generatedDocumentPath" ng-click="clearPath()">{{'FILE.DOC_SUCCES' | translate}}</a>
+        </form>
+      </div>
+  </div>
+</main>

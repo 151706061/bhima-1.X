@@ -13,7 +13,7 @@ var db = require('../lib/db'),
 exports.getDepots = getDepots;
 exports.getDepotsById = getDepotsById;
 exports.getDistributions = getDistributions;
-exports.getDistributionsById = getDistributionsById;
+exports.getDistributionsByDocumentId = getDistributionsByDocumentId;
 exports.getAvailableLots = getAvailableLots;
 exports.getAvailableLotsByInventoryId = getAvailableLotsByInventoryId;
 exports.getExpiredLots = getExpiredLots;
@@ -206,11 +206,11 @@ function getDistributions(req, res, next) {
   .done();
 }
 
-function getDistributionsById(req, res, next) {
+function getDistributionsByDocumentId(req, res, next) {
   'use strict';
 
   var sql,
-      uuid = req.params.uuid;
+      documentId = req.params.documentId;
 
   sql =
     'SELECT c.uuid, c.document_id, c.date, d.text AS depotName, ' +
@@ -219,10 +219,10 @@ function getDistributionsById(req, res, next) {
     'JOIN depot AS d ON d.uuid = c.depot_uuid ' +
     'JOIN stock AS s ON s.tracking_number = c.tracking_number ' +
     'JOIN inventory AS i ON i.uuid = s.inventory_uuid ' +
-    'WHERE d.uuid = ? AND c.uuid = ?' +
+    'WHERE d.uuid = ? AND c.document_id = ?' +
     'ORDER BY c.date DESC;';
 
-  db.exec(sql, [req.params.depotId, uuid])
+  db.exec(sql, [req.params.depotId, documentId])
   .then(function (rows) {
     if (!rows) {
       return res.status(404).json({
@@ -273,20 +273,28 @@ function getAvailableLots(req, res, next) {
 
   sql =
     'SELECT unit_price, tracking_number, lot_number, SUM(quantity) AS quantity, code, label, expiration_date FROM ' +
-    '(SELECT purchase_item.unit_price, stock.tracking_number, stock.lot_number, (consumption.quantity * -1) as quantity, inventory.code, inventory.text AS label, stock.expiration_date FROM ' +
-    'consumption JOIN stock ON consumption.tracking_number = stock.tracking_number JOIN inventory ON inventory.uuid = stock.inventory_uuid ' +
-    'JOIN purchase_item ON purchase_item.purchase_uuid = stock.purchase_order_uuid AND purchase_item.inventory_uuid = stock.inventory_uuid  ' +
-    'WHERE consumption.canceled = 0 AND depot_uuid = ? ' +
+      '(SELECT purchase_item.unit_price, stock.tracking_number, stock.lot_number, (consumption.quantity * -1) as quantity, ' + 
+      'inventory.code, inventory.text AS label, stock.expiration_date ' + 
+      'FROM consumption ' + 
+      'JOIN stock ON consumption.tracking_number = stock.tracking_number ' +
+      'JOIN inventory ON inventory.uuid = stock.inventory_uuid ' +
+      'JOIN purchase_item ON purchase_item.purchase_uuid = stock.purchase_order_uuid AND purchase_item.inventory_uuid = stock.inventory_uuid ' +
+      'WHERE consumption.canceled = 0 AND depot_uuid = ? ' + 
     'UNION ALL ' +
-    'SELECT purchase_item.unit_price, stock.tracking_number, stock.lot_number, (CASE WHEN movement.depot_entry= ? THEN movement.quantity ELSE movement.quantity*-1 END) AS quantity, ' +
-    'inventory.code, inventory.text AS label, stock.expiration_date FROM movement JOIN stock ON movement.tracking_number = stock.tracking_number JOIN inventory ' +
-    'ON inventory.uuid = stock.inventory_uuid JOIN purchase_item ON purchase_item.purchase_uuid = stock.purchase_order_uuid AND purchase_item.inventory_uuid = stock.inventory_uuid ' +
-    'WHERE movement.depot_entry= ? OR movement.depot_exit= ?) ' +
-    'AS t GROUP BY tracking_number;';
+      'SELECT inventory.purchase_price AS unit_price, stock.tracking_number, stock.lot_number, ' + 
+        'SUM(if (movement.depot_entry= ?, movement.quantity, (movement.quantity*-1))) as quantity, ' + 
+        'inventory.code, inventory.text AS label, stock.expiration_date ' +
+        'FROM stock ' +
+        'JOIN inventory ' + 
+        'JOIN movement ON stock.inventory_uuid = inventory.uuid ' +
+        'AND stock.tracking_number = movement.tracking_number ' +
+        'WHERE (movement.depot_entry = ? OR movement.depot_exit= ? ) ' +  
+        'GROUP BY movement.tracking_number) ' +
+    'AS t GROUP BY tracking_number ' +
+    'HAVING quantity > 0; ';
 
   return db.exec(sql, [depot, depot, depot, depot])
-  .then(function (rows) {
-    var ans = rows.filter(function (item){return item.quantity > 0});
+  .then(function (ans) { 
     res.status(200).json(ans);
   })
   .catch(next)

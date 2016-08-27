@@ -565,7 +565,7 @@ function bhimaconfig($routeProvider) {
     templateUrl : 'partials/stock/dashboard/dashboard.html'
   })
   .when('/snis/', {
-    controller : 'snis',
+    controller : 'SnisController as SnisCtrl',
     templateUrl : 'partials/snis/snis.html'
   })
   .when('/snis/new_report', {
@@ -575,6 +575,10 @@ function bhimaconfig($routeProvider) {
   .when('/snis/edit_report/:id', {
     controller : 'snis.edit_report',
     templateUrl : 'partials/snis/snis_edit_report.html'
+  })
+  .when('/snis/print_report/:id/:section', {
+    controller : 'snis.print_report as SnisCtrl',
+    templateUrl : 'partials/snis/snis_print_report.html'
   })
   .when('/purchase_menu/', {
     controller : 'purchase.menu',
@@ -721,17 +725,9 @@ function bhimaconfig($routeProvider) {
     controller : 'configureResult',
     templateUrl : 'partials/reports_proposed/result_account/result_account.html'
   })
-  .when('/reports/balance/', {
-    controller : 'configureBalance',
-    templateUrl : 'partials/reports_proposed/balance/balance.html'
-  })
   .when('/reports/debtorgroup/annual', {
     controller : 'DebtorGroupAnnualReportController as AnnualCtrl',
     templateUrl : 'partials/reports_proposed/debtor_group/annual.html'
-  })
-  .when('/reports/grand_livre/', {
-    controller : 'configureGrandLivre',
-    templateUrl : 'partials/reports_proposed/grand_livre/grand_livre.html'
   })
   .when('/reports/employee_state/', {
     controller : 'configureEmployeeState',
@@ -753,6 +749,18 @@ function bhimaconfig($routeProvider) {
   })
   .when('/dashboards/finance', {
     templateUrl : 'partials/dashboard/finance.html'
+  })
+
+  /** customer debt */
+  .when('/reports/customer_debt', {
+    controller : 'CustomerDebtController as ReportCtrl',
+    templateUrl : '/partials/reports/customer_debt/customer_debt.html'
+  })
+
+  /** service status */
+  .when('/reports/service_status', {
+    controller : 'ServiceStatusController as ServiceCtrl',
+    templateUrl : '/partials/reports/service_status/service_status.html'
   })
   .otherwise({ redirectTo : '/' });
 }

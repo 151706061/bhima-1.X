@@ -174,17 +174,18 @@
   "LANGUAGE"        : "Language"
   },
 "BALANCE_MENSUELLE": {
-   "CHOOSE_CLASS"    : "Choose a class",
-   "CHOOSE_PERIOD"   : "Choose a period",
-   "CLASS"           : "Class",
-   "INFO_FILL_INPUT" : "Please select period and class",
-   "LABEL"           : "Label",
-   "MONTH_MOVEMENT"  : "Month Movement",
-   "NEW_SOLD"        : "New Balance",
-   "NO_DATA"         : "There is no data for that period!",
-   "OLD_SOLD"        : "Old Balance",
-   "REPORT"          : "Monthly Balance Report",
-   "TITLE"           : "Monthly Balance by Class"
+   "CHOOSE_CLASS"        : "Choose a class",
+   "CHOOSE_PERIOD"       : "Choose a period",
+   "CHOOSE_PERIOD_PLAGE" : "Choose a period plage",
+   "CLASS"               : "Class",
+   "INFO_FILL_INPUT"     : "Please select period and class",
+   "LABEL"               : "Label",
+   "MONTH_MOVEMENT"      : "Movement",
+   "NEW_SOLD"            : "New Balance",
+   "NO_DATA"             : "There is no data for that period!",
+   "OLD_SOLD"            : "Old Balance",
+   "REPORT"              : "Balance",
+   "TITLE"               : "Balance"
    },
 "BILAN" : {
   "BUILD_BILAN"     : "Build bilan",
@@ -192,7 +193,10 @@
   "FISCAL_YEAR"     : "Fiscal Year",
   "LANGUAGE"        : "Language",
   "GENERATE_DOC"    : "Generate Document",
-  "DOC_SUCCES"      : "Document Build Success - Open Document"
+  "DOC_SUCCES"      : "Document Build Success - Open Document",
+  "OHADA_STRUCTURE" : "OHADA Structure",
+  "LOADING"         : "Loading ...",
+  "NET_ONLY"        : "Show only net amount"
   },
 "BUDGET": {
   "ANALYSIS" : {
@@ -292,7 +296,27 @@
       "WAIT_ACCOUNT"       : "Compte d'attente"
     },
    "FLOW" : {
-     "TITLE" : "Cash Flow "
+     "CASH"               : "Cashbox",
+     "CASH_EXPENSE"       : "Cash Outgoing",
+     "CASH_INCOME"        : "Cash Incoming",
+     "CASH_RETURN"        : "Payback",
+     "COTISATION_PAYMENT" : "Payroll - Cotisations",
+     "CLOSING_BALANCE"    : "Cash (Closing Balance)",
+     "CONVENTION_PAYMENT" : "Convention payments",
+     "GENERIC_EXPENSE"    : "Other Expenses",
+     "GENERIC_INCOME"     : "Other Incomes",
+     "GROUP_DEB_INVOICE"  : "Accounting",
+     "IMPORT_AUTO"        : "Reports",
+     "INDIRECT_PURCHASE"  : "Purchases",
+     "JOURNAL"            : "Journal",
+     "MONTH_BALANCE"      : "Cash (Monthly Balance)",
+     "OPENNING_BALANCE"   : "Cash on Hand (Openning balance)",
+     "PATIENT_PAYMENT"    : "Patients Payemnts",
+     "PCASH_EMPLOYEE"     : "Paiement des prises en charge",
+     "SALARY_ADVANCE"     : "Salary Advance",
+     "TAX_PAYMENT"        : "Payroll - Taxes",
+     "TITLE"              : "Cash Flow ",
+     "TOTALS"             : "Totals"
    },
    "HELP_TXT_1"       : "The module allows debitors to pay against existing invoices",
    "HELP_TXT_2"       : "To begin, search for a debitor using the search bar above",
@@ -847,6 +871,23 @@
    "SYMBOL_TXT"    : "the symbol with which the currency is identified and rendered.  Appears after the amount",
    "TITLE"         : "Currency Management"
    },
+"CUSTOMER" : {
+    "ALL_DEBTOR_GROUPS" : "All Debtor Groups",
+    "DEBT"              : "Debts",
+    "DEBT_REPORT"       : "Customer Debts Report",
+    "DEBTOR_GROUP"      : "Debtor Groups",
+    "DEFINE_UNTIL_DATE" : "Define a limit date",
+    "NO_DATA"           : "No data found",
+    "LESS_THREE_MONTH"  : "Debts of less than three months",
+    "OVER_SIX_MONTH"    : "Debts between 6 months and 1 year",
+    "OVER_THREE_MONTH"  : "Debts between 3 and 6 months",
+    "OVER_YEAR"         : "Debts of more than a year",
+    "QUARTER_ONE"       : "Less than 3 months",
+    "QUARTER_TWO"       : "Between 3 and 6 months",
+    "QUARTER_THREE"     : "More than 6 months",
+    "QUARTER_FOUR"      : "Previous Exercises",
+    "UNTIL_DATE"        : "Until the date"
+  },
 "DAILY_CONSUMPTION": {
    "ALL_PROJECTS"       : "All Projects",
    "CONFIGURE_REPORT"   : "Configure report : Daily Consumption",
@@ -902,12 +943,15 @@
    "DOCUMENT_CONFIG" : "Configuration of Debitor Group Report",
    "DEBITOR_GROUP" : "Debitor Group",
    "DOC_SUCCES"   : "Document Build Success - Open Document",
-   "GENERATE_DOC"    : "Generate document"
+   "GENERATE_DOC"    : "Generate document",
+   "WITH_REPORT"     : "With report",
+   "IGNORED_CLIENT_ACCOUNT" : "Ignored client account",
+   "EXAMPLE"    : "One Account Client : 41XXXXXX, Many Account Client : 41XXXXXX;41XXXXXX"
 },
 "DEPOT": {
   "ADD"              : "Add a Depot",
   "ALERT"            : "Manage depots stores from here",
-  "ALL"              : "All Depots",
+  "ALL"              : "All Depots",  
   "NO_LOTS"        : "No Lots Available",
   "CHANGE_DEPOT"      : "Are you sure you want to change depots?  The current depot is %depot%.",
   "CONFIRM_SELECTION" : "Are you sure you want to select %depot%?",
@@ -916,6 +960,7 @@
   "DISTRIBUTION"   : {
     "ANNUL"    : "Annul this Transaction",
     "ANNULLED" : "Annulled",
+    "FILE"     : "File of Stock",
     "TYPE_INVENTORY_ITEM"      : "Type the drug name or drug code",
     "LOSSES"   : "Stock Losses",
     "NO_ROWS"  : "No distributions found within this time frame!",
@@ -1233,6 +1278,18 @@
    "TITLE"        : "Liste des Lots Expirants",
    "WEEK"         : "This Week"
    },
+
+"FILE" : {
+  "ARTICLES" : "Article",
+  "LANGUAGE" : "Language",
+  "DATE_FROM" : "Date From",
+  "DATE_TO"   : "Date To",
+  "GENERATE_DOC" : "Generate Document",
+  "LOADING"  : "Loading ...",
+  "DOCUMENT_CONFIG" : "Configuration of Document",
+  "DOC_SUCCES" : "Genererate successfully.Click here"
+
+  },
 "FIND": {
    "ACCOUNT": {
       "ACCOUNT"       : "Account",
@@ -1883,7 +1940,7 @@
    "TITLE"              : "Patient Standing Report"
    },
 "PATIENT_VISIT" : {
-   "CASES"            : "Cases",
+   "PATIENT"            : "Patient",
    "DATE"             : "Date Visite",
    "DETAILS"          : "Details",
    "FILE_NR"          : "File Number",
@@ -1892,9 +1949,9 @@
    "GROUP_BY_DAY"     : "Days",
    "LEGEND"           : "Legend",
    "NAME"             : "Nom",
-   "NEW_CASES"        : "New Cases",
+   "NEW_PATIENT"        : "New patient",
    "NEW_VISIT_SAVED"  : "New of visitation of the patient registered",
-   "OLD_CASES"        : "Old Cases",
+   "OLD_PATIENT"        : "Old patient",
    "REGISTER_VISIT"   : "Register Visit",
    "TITLE"            : "Patients Visit"
  },
@@ -2570,6 +2627,13 @@
    "PROJECT_SELECT"         : "Selectionner a Project",
    "REGISTER"               : "Registering",
    "REGISTERED"             : "Registered Services",
+   "STATUS"                 : {
+      "DETAILS"             : "Details",
+      "FACT_AMOUNT"         : "Montant des factures",
+      "FACT_NUMBER"         : "Nombre des factures",
+      "LEDGER_INFO"         : "Following data are about only posted transactions",
+      "TITLE"               : "Billing reports by service"
+    },
    "SUCCESS_MESSAGE"        : "Operation successfully !",
    "TITLE"                  : "Services Management"
    },
@@ -2615,6 +2679,7 @@
   "ALL"         : "All SNIS reports",
   "BACK"        : "Back",
   "DESCRIPTION" : "Managing data for SNIS",
+  "GENERATE"    : "Generate reports",
   "LABEL"       : "SNIS report",
   "NEXT"        : "Next",
   "NEW"         : "New SNIS report ",
@@ -2803,7 +2868,7 @@
       },
    "TITLE"              : "Stock Dashboard"
    },
-"STOCK_STATUS": {
+"STOCK_STATUS": {   
    "CONSUMPTION_PER_MONTH" : "Consumption per month",
    "MAXIMUM_STOCK"         : "Maximum Stock",
    "MINIMUM_STOCK"         : "Minimum Stock",
@@ -2811,7 +2876,8 @@
    "NO_CONSUMPTION"        : "Aucun produits en stock",
    "QUANTITY_ORDER"        : "Quantity to Order",
    "SAFETY_STOCK"          : "Safety stock",
-   "TITLE"                 : "Stock Situation"
+   "TITLE"                 : "Stock Situation",
+   "STOCK_FILE"            : "File of Stcok"
    },
 "SUBSIDY" : {
    "DETAILS"     : "",
@@ -2976,7 +3042,7 @@
    "ALL_TRANSACTIONS"          : "All Transactions",
    "AUTHORIZE_PURCHASE"        : "Authorization",
    "AUXILLARY_CASH_RECORD"     : "Auxillary Cash Records",
-   "BALANCE_MENSUELLE"         : "Monthly balance",
+   "BALANCE_MENSUELLE"         : "Balance",
    "BALANCE_SHEET"             : "Balance sheet",
    "BENEFICIARY"               : "Beneficaries",
    "BILAN"                     : "Bilan",
@@ -2994,6 +3060,7 @@
    "CLIENT"                    : "Clients",
    "SECTION_RESULTAT"          : "Result Section",
    "COMPTE_RESULTAT"           : "Result Account",
+   "COMPTE_EXPLOITATION"       : "Income expense variation",
    "CONFIG_ACCOUNTING"         : "Configuration accounting",
    "CONFIG_RUBRIC"             : "Configuration Rubrics",
    "CONFIG_TAX"                : "Configuration Taxes",
@@ -3004,6 +3071,7 @@
    "CREDITOR_GRP"              : "Creditor Group",
    "CREDIT_NOTE"               : "Credit note",
    "CURRENCY"                  : "Currency",
+   "CUSTOMER_DEBT_REPORT"      : "Customers Debts",
    "DAILY_CONSUMPTION"         : "Daily Consumption",
    "DASHBOARD" : {
       "FINANCE" : "Finance Dashboard",
@@ -3047,6 +3115,7 @@
    "INVENTORY_MANAGEMENT"      : "Inventory Management",
    "INVENTORY_VIEW"            : "Stock",
    "JOURNAL_VOUCHER"           : "Journal Voucher",
+   "LIQUIDITY_FLOW"            : "Liquidity Flow",
    "LOCATION"                  : "Location Management",
    "LOSS_RECORDS"              : "Stock loss",
    "MAIN_CASH"                 : "Principal Cashbox",
@@ -3098,6 +3167,7 @@
    "SERVICE"                   : "Services",
    "SERVICE_EXPLOITATION"      : "Services Status",
    "SERVICE_STATE"             : "Service State",
+   "SERVICE_STATUS"            : "Service Billing Report",
    "STOCK"                     : "Stock",
    "STOCK_DASHBOARD"           : "Stock Dashboard",
    "STOCK_DEPOT_REPORT"        : "Depots Stocks",
@@ -3115,7 +3185,8 @@
    "TRANSACTIONS_BY_ACCOUNT"   : "Transactions by Account",
    "UPDATE_STOCK"              : "Update stock",
    "USERS"                     : "Users",
-   "VALIDATE_PURCHASE"         : "Validation"
+   "VALIDATE_PURCHASE"         : "Validation",
+   "CUSTOMER_DEBT"             : "Client debt by plage date"
    },
 "TRIAL_BALANCE": {
    "ACCOUNT"          : "Account",
@@ -3204,6 +3275,8 @@
    "LANGUAGE"          : "Language",
    "LOADING"           : "Loading",
    "LINK"              : "Link",
+   "MODAL_FIND_RECEIPT": "Find Receipt",
+   "MODAL_FINISH"      : "Finish",
    "MONTHS"            : "Months",
    "NAVIGATION"        : "Navigation",
    "NEW_SUCCESS"       : "Successfully added",
@@ -3236,7 +3309,24 @@
    "VALIDATE"          : "Accept",
    "YEARS"             : "Years",
    "YES"               : "Yes"
-   },
+},
+
+"VARIATION_EXPLOITATION" : {
+  "BUILD_VARIATION_EXPLOITATION" : "Income expense account variation",
+  "DOCUMENT_CONFIG" : "Document configuration",
+  "FISCAL_YEAR" : "Fiscal year",
+  "IGNORED_TRANSACTION_CURRENT" : "Transactions list to ignore for current year",
+  "IGNORED_TRANSACTION_PREVIEW" : "Transactions list to ignore for previews year",
+  "LANGUAGE" : "Language",
+  "GENERATE_DOC" : "Generer Document",
+  "DOC_SUCCES" : "Generated sucessfully",
+  "EXAMPLE"    : "One transaction : HBB1, Many transactions : HBB1;HBB2",
+  "ACCOUNT_GROUP_DEDUCT" : "Acount group to deduct from result",
+  "EXAMPLE_DEDUCT" : "One account group : 718, Many account Group : 718;7182, simultenous deduction : 718,7182",
+  "ACCOUNT_AMOUNT_DEDUCTION_PREVIOUS" : "Account and amount to deduct for previous year",
+  "EXAMPLE_ACCOUNT_AMOUNT_DEDUCT" : "One account 65XXXXXX:300, Many accounts 65XXXXXX:300;75XXXXXX:150",
+  "ACCOUNT_AMOUNT_DEDUCTION_CURRENT" : "Account and amount to deduct for current year"
+},
 "VERSEMENT": {
    "ASSOCIATED_TO"     : "Accounts associated to         : ",
    "AVAILABLE_ACCOUNT" : "Availables accounts",
